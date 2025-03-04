@@ -49,6 +49,7 @@ class HistoManager;
 class G4UIdirectory;
 class G4UIcmdWithABool;
 class G4UIcmdWithAString;
+class G4UIcmdWith3Vector;
 class G4UIcmdWithAnInteger;
 class G4UIcmdWithADoubleAndUnit;
 class G4UIcmdWithoutParameter;
@@ -71,6 +72,7 @@ class HistoManagerMessenger : public G4UImessenger
     G4UIcmdWithAnInteger* fverbCmd;
     G4UIcmdWithAString* fcsCmd;
     G4UIcmdWithAString* fpartCmd;
+    G4UIcmdWith3Vector* fionCmd;
     G4UIcmdWithADoubleAndUnit* fe1Cmd;
     G4UIcmdWithADoubleAndUnit* fe2Cmd;
     G4UIcmdWithADoubleAndUnit* fp1Cmd;

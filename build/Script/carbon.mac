@@ -5,19 +5,23 @@
 /control/verbose 1
 /run/verbose 1
 /tracking/verbose 0
+#
 /testhadr/TargetMat        G4_BGO
-/testhadr/TargetRadius     1  cm
-/testhadr/TargetLength     10 cm
+/testhadr/targetElm        Bi
+/testhadr/TargetRadius     30 cm
+/testhadr/TargetLength     35 cm
 /run/printProgress         10
 #
 /run/initialize
 /process/em/workerVerbose 0
 #
-/gun/particle  neutron
-/gun/energy 100. MeV
-###/testhadr/fileName  nC
-/testhadr/particle   neutron
-/testhadr/verbose 1
+/gun/particle ion
+/gun/ion 6 12 0
+/gun/energy 100. GeV
+
+/testhadr/fileName  Carbon_BGO
+/testhadr/particle ion
+/gun/ion 6 12 0
+/testhadr/verbose 0
 /process/eLoss/verbose 0
-/run/beamOn 0
-#
+/run/beamOn 1

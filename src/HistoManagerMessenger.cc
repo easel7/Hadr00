@@ -71,6 +71,12 @@ HistoManagerMessenger::HistoManagerMessenger(HistoManager* p) : G4UImessenger(),
   fpartCmd->SetParameterName("Particle", false);
   fpartCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
 
+  // 定义离子专用命令（Z, A, 电荷）
+  fionCmd = new G4UIcmdWith3Vector("/testhadr/ion", this);
+  fionCmd->SetGuidance("Set ion Z (proton number), A (mass number), charge");
+  fionCmd->SetParameterName("Z", "A", "Charge", false);
+  fionCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
+
   fcsCmd = new G4UIcmdWithAString("/testhadr/targetElm", this);
   fcsCmd->SetGuidance("Set element name");
   fcsCmd->SetParameterName("Elm", false);
@@ -116,6 +122,8 @@ HistoManagerMessenger::~HistoManagerMessenger()
   delete fbinCmd;
   delete fnOfAbsCmd;
   delete fpartCmd;
+  delete fionCmd;
+
   delete fcsCmd;
   delete fe1Cmd;
   delete fe2Cmd;
@@ -158,6 +166,14 @@ void HistoManagerMessenger::SetNewValue(G4UIcommand* command, G4String newValue)
   }
   else if (command == fFCmd) {
     fHisto->SetHistoName(newValue);
+  }
+  else if (command == fionCmd) {
+    G4ThreeVector ionValues = fionCmd->GetNew3VectorValue(newValue);
+    G4double Z = ionValues.x();        // 获取 Z (质子数)
+    G4double A = ionValues.y();        // 获取 A (质量数)
+    G4double charge = ionValues.z();   // 获取电荷数
+    // 设置离子的 Z, A 和 charge
+    fHisto->SetIonProperties(Z, A, charge);
   }
 }
 

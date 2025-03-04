@@ -43,7 +43,7 @@
 /testhadr/targetElm  Fe
 ##/testhadr/fileName  n_fe
 /run/beamOn 1
-ç
+/testhadr/targetElm  C
 ##/testhadr/fileName  n_c
 /run/beamOn 1
 /testhadr/verbose 0

@@ -56,6 +56,7 @@
 #include "G4StableIsotopes.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4UnitsTable.hh"
+#include "G4IonTable.hh"
 #include "G4ios.hh"
 #include "globals.hh"
 
@@ -71,7 +72,12 @@ HistoManager::HistoManager()
   fVerbose = 1;
 
   fParticleName = "proton";
-  fElementName = "Bi";
+  fElementName = "G4_Bi";
+  fMaterialName = "G4_BGO";
+  fIonZ = 6;
+  fIonA = 12;
+  fIonCharge = 0;
+
 
   fTargetMaterial = 0;
 
@@ -80,8 +86,8 @@ HistoManager::HistoManager()
   fMinMomentum = 1 * GeV;
   fMaxMomentum = 1 * TeV;
 
-  fBinsE = 800;
-  fBinsP = 700;
+  fBinsE = 60;
+  fBinsP = 60;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -106,26 +112,12 @@ void HistoManager::BeginOfRun()
   fAnalysisManager->OpenFile(fHistoName + ".root");
   fAnalysisManager->SetFirstHistoId(1);
 
-  fAnalysisManager->CreateH1("h1", "Elastic cross section (barn) as a functions of log10(p/GeV)",
-                             fBinsP, p1, p2);
-  fAnalysisManager->CreateH1("h2", "Elastic cross section (barn) as a functions of log10(E/MeV)",
-                             fBinsE, e1, e2);
-  fAnalysisManager->CreateH1("h3", "Inelastic cross section (barn) as a functions of log10(p/GeV)",
-                             fBinsP, p1, p2);
-  fAnalysisManager->CreateH1("h4", "Inelastic cross section (barn) as a functions of log10(E/MeV)",
-                             fBinsE, e1, e2);
-  fAnalysisManager->CreateH1("h5", "Capture cross section (barn) as a functions of log10(E/MeV)",
-                             fBinsE, e1, e2);
-  fAnalysisManager->CreateH1("h6", "Fission cross section (barn) as a functions of log10(E/MeV)",
-                             fBinsE, e1, e2);
-  fAnalysisManager->CreateH1(
-    "h7", "Charge exchange cross section (barn) as a functions of log10(E/MeV)", fBinsE, e1, e2);
-  fAnalysisManager->CreateH1("h8", "Total cross section (barn) as a functions of log10(E/MeV)",
-                             fBinsE, e1, e2);
-  fAnalysisManager->CreateH1(
-    "h9", "Inelastic cross section per volume as a functions of log10(E/MeV)", fBinsE, e1, e2);
-  fAnalysisManager->CreateH1(
-    "h10", "Elastic cross section per volume as a functions of log10(E/MeV)", fBinsE, e1, e2);
+  fAnalysisManager->CreateH1("h1", "Inelastic interaction length ;log10(E/MeV); Length(cm)", fBinsE, e1, e2);
+  fAnalysisManager->CreateH1("h2", "Elastic interaction length ;log10(E/MeV); Length(cm)", fBinsE, e1, e2);
+  fAnalysisManager->CreateH1("h3", "Total Hadronic interaction length ;log10(E/MeV); Length(cm)", fBinsE, e1, e2);
+  fAnalysisManager->CreateH1("h4", "Inelastic cross section per volume ;log10(E/MeV); Cross Section(cm)", fBinsE, e1, e2);
+  fAnalysisManager->CreateH1("h5", "Elastic cross section per volume ;log10(E/MeV); Cross Section(cm)", fBinsE, e1, e2);
+  fAnalysisManager->CreateH1("h6", "Total Hadronic cross section per volume ;log10(E/MeV); Cross Section(cm)", fBinsE, e1, e2);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -136,28 +128,27 @@ void HistoManager::EndOfRun()
     G4cout << "HistoManager: End of run actions are started" << G4endl;
   }
 
-  const G4Element* elm = G4NistManager::Instance()->FindOrBuildElement(fElementName);
-  const G4Material* mat = G4NistManager::Instance()->FindOrBuildMaterial("G4_" + fElementName);
-  const G4ParticleDefinition* particle =
-    G4ParticleTable::GetParticleTable()->FindParticle(fParticleName);
+  const G4Material* mat = G4NistManager::Instance()->FindOrBuildMaterial(fMaterialName);
+  const G4Element* elm =   (mat->GetNumberOfElements() == 1) ? mat->GetElement(0) : nullptr;
+  if (elm) {
+    G4cout << "This material is a single element: " << elm->GetName() << G4endl;
+  } else {
+      G4cout << "This material is a compound." << G4endl;
+  }
+  const G4ParticleDefinition* particle;
+  if (fParticleName == "ion")
+  {
+    particle = G4IonTable::GetIonTable()->FindIon(fIonZ, fIonA, 0);
+  }
+  else
+  {
+    particle = G4ParticleTable::GetParticleTable()->FindParticle(fParticleName);
+  }
 
-  G4cout << "### Fill Cross Sections for " << fParticleName << " off " << fElementName << G4endl;
-  if (fVerbose > 0) {
-    G4cout << "-------------------------------------------------------------" << G4endl;
-    G4cout << "    N     E_k(MeV)   Elastic(b)   Inelastic(b)";
-    if (particle == fNeutron) {
-      G4cout << " Capture(b)   Fission(b)";
-    }
-    G4cout << "   Total(b)" << G4endl;
-    G4cout << "-------------------------------------------------------------" << G4endl;
-  }
-  if (!particle || !elm) {
-    G4cout << "HistoManager WARNING Particle or element undefined" << G4endl;
-    return;
-  }
+
 
   G4int prec = G4cout.precision();
-  G4cout.precision(4);
+  G4cout.precision(6);
 
   G4HadronicProcessStore* store = G4HadronicProcessStore::Instance();
   G4double mass = particle->GetPDGMass();
@@ -172,58 +163,80 @@ void HistoManager::EndOfRun()
   G4double dp = (p2 - p1) / G4double(fBinsP);
 
   G4double x = e1 - de * 0.5;
-  G4double e, p, xs, xtot;
+  G4double e, p, xel, xinel, xtot;
   G4int i;
 
   G4double coeff = 1.0;
-  if (fTargetMaterial) {
-    coeff = fTargetMaterial->GetDensity() * cm2 / g;
-  }
+  G4double density = 1.0;
+  G4double Nb_atom  = 0;
+  G4double Mass_atom = 0;
+  G4double Nbatom_PerVolume = 0;
+  G4double n_BGO=0;
 
+
+  density = fTargetMaterial->GetDensity();
+  coeff   = fTargetMaterial->GetDensity() * cm2 / g;
+  Nbatom_PerVolume  = fTargetMaterial->GetTotNbOfAtomsPerVolume();
+
+  const G4ElementVector* elementVector = fTargetMaterial->GetElementVector();
+  const G4int* atomsVector = fTargetMaterial->GetAtomsVector(); // 每种元素的原子个数
+  const G4double* atomDensities = fTargetMaterial->GetVecNbOfAtomsPerVolume();
+  const G4double* fractionMass = fTargetMaterial->GetFractionVector();
+
+  for (size_t i = 0; i < fTargetMaterial->GetNumberOfElements(); ++i) {
+      G4double atomicMass = (*elementVector)[i]->GetAtomicMassAmu();  // amu 单位
+      G4double numAtoms = (atomsVector) ? atomsVector[i] : -1;  // 获取原子个数
+      Mass_atom += numAtoms * atomicMass;
+      Nb_atom   += numAtoms;
+      G4cout << "Element: " << (*elementVector)[i]->GetName()  << 
+                "  Atoms per Volume : " << atomDensities[i] << " 1/mm³" <<
+                "  Number of Atoms : " << numAtoms << 
+                "  atomicMass : "   << atomicMass << 
+                "  fractionMass : " << fractionMass[i] << 
+                G4endl;
+  }
+  n_BGO = (density * cm3/g )/( Mass_atom * mole / Nb_atom ) * (CLHEP::Avogadro * mole );
+  G4cout << "Calculated Molecular Mass: " << Mass_atom << " g/mol" << " , Number of Atoms in Molecular " << Nb_atom << G4endl;
+  G4cout <<  "Material Density : " << G4BestUnit(density, "Volumic Mass") << G4endl;
+  G4cout <<  "Mean Path : " << G4BestUnit(1/coeff,"Length") << G4endl;
+  G4cout <<  "Total Number of Atoms per Volume :" << G4BestUnit(1/Nbatom_PerVolume,"Volume") << G4endl;
+  G4cout << "n_BGO: " << n_BGO  << " cm-3 " << G4endl;
+
+  G4cout << "### Fill Cross Sections for " << fParticleName << " off " << fMaterialName << G4endl;
+  G4cout << "-----------------------------------------------------------------------------------------------" << G4endl;
+  G4cout << "    N     E_k(MeV)   Lambda_Inel(cm)   Lambda_El(cm)   Inelastic(b)   Elastic(b)   Total(b)    " << G4endl;
+  G4cout << "-----------------------------------------------------------------------------------------------" << G4endl;
   for (i = 0; i < fBinsE; i++) {
     x += de;
     e = std::pow(10., x) * MeV;
-    if (fVerbose > 0) G4cout << std::setw(5) << i << std::setw(12) << e;
-    xs = store->GetElasticCrossSectionPerAtom(particle, e, elm, mat);
-    xtot = xs;
-    if (fVerbose > 0) G4cout << std::setw(12) << xs / barn;
-    fAnalysisManager->FillH1(2, x, xs / barn);
-    xs = store->GetInelasticCrossSectionPerAtom(particle, e, elm, mat);
-    xtot += xs;
-    if (fVerbose > 0) G4cout << " " << std::setw(12) << xs / barn;
-    fAnalysisManager->FillH1(4, x, xs / barn);
+     G4cout << std::setw(5) << i << std::setw(12) << e ;
     if (fTargetMaterial) {
-      xs = store->GetInelasticCrossSectionPerVolume(particle, e, fTargetMaterial);
-      fAnalysisManager->FillH1(9, x, xs / coeff);
-      xs = store->GetElasticCrossSectionPerVolume(particle, e, fTargetMaterial);
-      fAnalysisManager->FillH1(10, x, xs / coeff);
-    }
-    if (particle == fNeutron) {
-      xs = store->GetCaptureCrossSectionPerAtom(particle, e, elm, mat);
-      xtot += xs;
-      if (fVerbose > 0) G4cout << " " << std::setw(12) << xs / barn;
-      fAnalysisManager->FillH1(5, x, xs / barn);
-      xs = store->GetFissionCrossSectionPerAtom(particle, e, elm, mat);
-      xtot += xs;
-      if (fVerbose > 0) G4cout << " " << std::setw(12) << xs / barn;
-      fAnalysisManager->FillH1(6, x, xs / barn);
-    }
-    xs = store->GetChargeExchangeCrossSectionPerAtom(particle, e, elm, mat);
-    if (fVerbose > 0) G4cout << " " << std::setw(12) << xtot / barn << G4endl;
-    fAnalysisManager->FillH1(7, x, xs / barn);
-    fAnalysisManager->FillH1(8, x, xtot / barn);
-  }
+      xinel = store->GetInelasticCrossSectionPerVolume(particle, e, fTargetMaterial);
+      xel   = store->GetElasticCrossSectionPerVolume(particle, e, fTargetMaterial);
+      xtot  =  (xinel + xel);
 
-  x = p1 - dp * 0.5;
-  for (i = 0; i < fBinsP; i++) {
-    x += dp;
-    p = std::pow(10., x) * GeV;
-    e = std::sqrt(p * p + mass * mass) - mass;
-    xs = store->GetElasticCrossSectionPerAtom(particle, e, elm, mat);
-    fAnalysisManager->FillH1(1, x, xs / barn);
-    xs = store->GetInelasticCrossSectionPerAtom(particle, e, elm, mat);
-    fAnalysisManager->FillH1(3, x, xs / barn);
+      fAnalysisManager->FillH1(1, x, 1/xinel/cm );
+      fAnalysisManager->FillH1(2, x, 1/xel/cm);
+      fAnalysisManager->FillH1(3, x, 1/xtot/cm);
+      fAnalysisManager->FillH1(4, x, xinel/n_BGO*cm*1e24 );
+      fAnalysisManager->FillH1(5, x, xel/n_BGO*cm*1e24 );
+      fAnalysisManager->FillH1(6, x, xtot/n_BGO*cm*1e24 );
+      G4cout 
+      << std::setw(12) << G4BestUnit(1/xinel/cm, "Length") 
+      << std::setw(12) << G4BestUnit(1/xel/cm, "Length") 
+      << std::setw(12) << G4BestUnit(1/xtot/cm, "Length") 
+      << std::setw(12) << G4BestUnit(xinel/n_BGO*cm3, "Surface") 
+      << std::setw(12) << G4BestUnit(xel/n_BGO*cm3, "Surface") 
+      << std::setw(12) << G4BestUnit(xtot/n_BGO*cm3, "Surface") 
+      // << std::setw(12) << xinel/n_BGO  << " barn "
+      // << std::setw(12) << xel/n_BGO    << " barn "
+      // << std::setw(12) << xtot/n_BGO * 1e24  << " barn "
+      << G4endl;
+    }
   }
+  G4cout <<  "End Energy Loop"  << G4endl;
+
+
   if (fVerbose > 0) {
     G4cout << "-------------------------------------------------------------" << G4endl;
   }
@@ -231,18 +244,6 @@ void HistoManager::EndOfRun()
   fAnalysisManager->Write();
   fAnalysisManager->CloseFile();
   fAnalysisManager->Clear();
-
-  G4bool extra = true;
-  if (fTargetMaterial && extra) {
-    G4double E = 100 * GeV;
-    G4double cross = store->GetInelasticCrossSectionPerVolume(particle, E, fTargetMaterial);
-    if (cross <= 0.0) {
-      cross = 1.e-100;
-    }
-    G4cout << "### " << particle->GetParticleName() << " " << E / GeV << " GeV on "
-           << fTargetMaterial->GetName()
-           << " xs/X0= " << 1.0 / (cross * fTargetMaterial->GetRadlen()) << G4endl;
-  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

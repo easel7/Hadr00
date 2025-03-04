@@ -72,6 +72,7 @@ class HistoManager
 
     inline void SetParticleName(const G4String&);
     inline void SetElementName(const G4String&);
+    inline void SetMaterialName(const G4String&);
 
     inline void SetNumberOfBinsE(G4int val);
     inline void SetNumberOfBinsP(G4int val);
@@ -85,6 +86,8 @@ class HistoManager
     inline void SetHistoName(G4String& val);
 
     inline void SetTargetMaterial(const G4Material* p);
+    inline void SetIonProperties(G4double Z, G4double A, G4double charge);
+
 
   private:
     HistoManagerMessenger* fMessenger;
@@ -95,6 +98,7 @@ class HistoManager
 
     G4String fParticleName;
     G4String fElementName;
+    G4String fMaterialName;
 
     G4double fMinKinEnergy;
     G4double fMaxKinEnergy;
@@ -106,6 +110,11 @@ class HistoManager
     G4int fBinsP;
 
     G4String fHistoName;
+
+    G4double fIonZ;
+    G4double fIonA; 
+    G4double fIonCharge;
+
 };
 
 inline void HistoManager::SetParticleName(const G4String& name)
@@ -116,6 +125,11 @@ inline void HistoManager::SetParticleName(const G4String& name)
 inline void HistoManager::SetElementName(const G4String& name)
 {
   fElementName = name;
+}
+
+inline void HistoManager::SetMaterialName(const G4String& name)
+{
+  fMaterialName = name;
 }
 
 inline void HistoManager::SetNumberOfBinsE(G4int val)
@@ -170,4 +184,10 @@ inline void HistoManager::SetTargetMaterial(const G4Material* p)
   fTargetMaterial = p;
 }
 
+inline void HistoManager::SetIonProperties(G4double Z, G4double A, G4double charge)
+{
+    fIonZ = Z;
+    fIonA = A;
+    fIonCharge = charge;
+}
 #endif
