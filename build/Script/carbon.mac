@@ -23,5 +23,7 @@
 /testhadr/particle ion
 /gun/ion 6 12 0
 /testhadr/verbose 0
+/testhadr/minEnergy 100 MeV
+/testhadr/maxEnergy 100 TeV
 /process/eLoss/verbose 0
 /run/beamOn 1

@@ -21,5 +21,7 @@
 /testhadr/fileName  proton_BGO
 /testhadr/particle   proton
 /testhadr/verbose 0
+/testhadr/minEnergy 100 MeV
+/testhadr/maxEnergy 100 TeV
 /process/eLoss/verbose 0
 /run/beamOn 1

@@ -112,12 +112,15 @@ void HistoManager::BeginOfRun()
   fAnalysisManager->OpenFile(fHistoName + ".root");
   fAnalysisManager->SetFirstHistoId(1);
 
-  fAnalysisManager->CreateH1("h1", "Inelastic interaction length ;log10(E/MeV); Length(cm)", fBinsE, e1, e2);
-  fAnalysisManager->CreateH1("h2", "Elastic interaction length ;log10(E/MeV); Length(cm)", fBinsE, e1, e2);
-  fAnalysisManager->CreateH1("h3", "Total Hadronic interaction length ;log10(E/MeV); Length(cm)", fBinsE, e1, e2);
-  fAnalysisManager->CreateH1("h4", "Inelastic cross section per volume ;log10(E/MeV); Cross Section(cm)", fBinsE, e1, e2);
-  fAnalysisManager->CreateH1("h5", "Elastic cross section per volume ;log10(E/MeV); Cross Section(cm)", fBinsE, e1, e2);
-  fAnalysisManager->CreateH1("h6", "Total Hadronic cross section per volume ;log10(E/MeV); Cross Section(cm)", fBinsE, e1, e2);
+  fAnalysisManager->CreateH1("h1", "Inelastic interaction length ;log10(E_k/MeV); Length(cm)", fBinsE, e1, e2);
+  fAnalysisManager->CreateH1("h2", "Elastic interaction length ;log10(E_k/MeV); Length(cm)", fBinsE, e1, e2);
+  fAnalysisManager->CreateH1("h3", "Total Hadronic interaction length ;log10(E_k/MeV); Length(cm)", fBinsE, e1, e2);
+  fAnalysisManager->CreateH1("h4", "Inelastic cross section per volume ;log10(E_k/MeV); Cross Section(barn)", fBinsE, e1, e2);
+  fAnalysisManager->CreateH1("h5", "Elastic cross section per volume ;log10(E_k/MeV); Cross Section(barn)", fBinsE, e1, e2);
+  fAnalysisManager->CreateH1("h6", "Total Hadronic cross section per volume ;log10(E_k/MeV); Cross Section(barn)", fBinsE, e1, e2);
+  fAnalysisManager->CreateH1("h7", "Inelastic cross section per volume ;log10(E_kn /MeV); Cross Section(barn)", fBinsE, e1, e2);
+  fAnalysisManager->CreateH1("h8", "Elastic cross section per volume ;log10(E_kn/MeV); Cross Section(barn)", fBinsE, e1, e2);
+  fAnalysisManager->CreateH1("h9", "Total Hadronic cross section per volume ;log10(E_kn/MeV); Cross Section(barn)", fBinsE, e1, e2);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -145,6 +148,33 @@ void HistoManager::EndOfRun()
     particle = G4ParticleTable::GetParticleTable()->FindParticle(fParticleName);
   }
 
+  G4int A = 0;
+  G4int Z = 0;
+  if (particle) 
+  {
+    if (particle->GetParticleType() == "nucleus") {
+      A = particle->GetAtomicMass();
+      Z = particle->GetAtomicNumber();
+    } 
+    else if (particle->GetParticleName() == "proton") {
+      A = 1;
+      Z = 1;
+    } 
+    else if (particle->GetParticleName() == "neutron") {
+        A = 1;
+        Z = 0;
+    } 
+    else if (particle->GetParticleName() == "alpha") {
+        A = 4;
+        Z = 2;
+    }
+    else if (particle->GetParticleName() == "He3") {
+        A = 3;
+        Z = 2;
+    }
+    G4cout << "Particle: " << particle->GetParticleName()  << ", A = " << A << ", Z = " << Z << G4endl; 
+  } 
+  else G4cout << "Error: Particle not found!" << G4endl;
 
 
   G4int prec = G4cout.precision();
@@ -164,6 +194,7 @@ void HistoManager::EndOfRun()
 
   G4double x = e1 - de * 0.5;
   G4double e, p, xel, xinel, xtot;
+  G4double  kn_xel, kn_xinel, kn_xtot;
   G4int i;
 
   G4double coeff = 1.0;
@@ -209,11 +240,15 @@ void HistoManager::EndOfRun()
   for (i = 0; i < fBinsE; i++) {
     x += de;
     e = std::pow(10., x) * MeV;
-     G4cout << std::setw(5) << i << std::setw(12) << e ;
+    G4cout << std::setw(5) << i << std::setw(12) << e ;
     if (fTargetMaterial) {
       xinel = store->GetInelasticCrossSectionPerVolume(particle, e, fTargetMaterial);
       xel   = store->GetElasticCrossSectionPerVolume(particle, e, fTargetMaterial);
       xtot  =  (xinel + xel);
+
+      kn_xinel = store->GetInelasticCrossSectionPerVolume(particle, e*A, fTargetMaterial);
+      kn_xel   = store->GetElasticCrossSectionPerVolume(particle, e*A, fTargetMaterial);
+      kn_xtot  =  (kn_xinel + kn_xel);
 
       fAnalysisManager->FillH1(1, x, 1/xinel/cm );
       fAnalysisManager->FillH1(2, x, 1/xel/cm);
@@ -221,6 +256,9 @@ void HistoManager::EndOfRun()
       fAnalysisManager->FillH1(4, x, xinel/n_BGO*cm*1e24 );
       fAnalysisManager->FillH1(5, x, xel/n_BGO*cm*1e24 );
       fAnalysisManager->FillH1(6, x, xtot/n_BGO*cm*1e24 );
+      fAnalysisManager->FillH1(7, x, kn_xinel/n_BGO*cm*1e24 );
+      fAnalysisManager->FillH1(8, x, kn_xel/n_BGO*cm*1e24 );
+      fAnalysisManager->FillH1(9, x, kn_xtot/n_BGO*cm*1e24 );
       G4cout 
       << std::setw(12) << G4BestUnit(1/xinel/cm, "Length") 
       << std::setw(12) << G4BestUnit(1/xel/cm, "Length") 
