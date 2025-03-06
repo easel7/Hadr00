@@ -234,9 +234,9 @@ void HistoManager::EndOfRun()
   G4cout << "n_BGO: " << n_BGO  << " cm-3 " << G4endl;
 
   G4cout << "### Fill Cross Sections for " << fParticleName << " off " << fMaterialName << G4endl;
-  G4cout << "-----------------------------------------------------------------------------------------------" << G4endl;
-  G4cout << "    N     E_k(MeV)   Lambda_Inel(cm)   Lambda_El(cm)   Inelastic(b)   Elastic(b)   Total(b)    " << G4endl;
-  G4cout << "-----------------------------------------------------------------------------------------------" << G4endl;
+  G4cout << "------------------------------------------------------------------------------------------------------------------" << G4endl;
+  G4cout << "    N     E_k(MeV)   Lambda_Inel(cm)   Lambda_El(cm)   Total_Lambda(cm)   Inelastic(b)   Elastic(b)   Total(b)    " << G4endl;
+  G4cout << "------------------------------------------------------------------------------------------------------------------" << G4endl;
   for (i = 0; i < fBinsE; i++) {
     x += de;
     e = std::pow(10., x) * MeV;
