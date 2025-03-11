@@ -16,12 +16,12 @@
 /process/em/workerVerbose 0
 #
 /gun/particle ion
-/gun/ion 6 12 0
+/gun/ion 8 16 0
 /gun/energy 100. GeV
 
-/testhadr/fileName  Carbon_BGO
+/testhadr/fileName  Oxygen_BGO
 /testhadr/particle ion
-/testhadr/ion 6 12 0
+/testhadr/ion 8 16 0
 /testhadr/verbose 0
 /testhadr/minEnergy 100 MeV
 /testhadr/maxEnergy 100 TeV
