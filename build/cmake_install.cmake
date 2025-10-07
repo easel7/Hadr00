@@ -34,18 +34,19 @@ endif()
 
 # Set path to fallback-tool for dependency-resolution.
 if(NOT DEFINED CMAKE_OBJDUMP)
-  set(CMAKE_OBJDUMP "/Library/Developer/CommandLineTools/usr/bin/objdump")
+  set(CMAKE_OBJDUMP "/usr/bin/objdump")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/Users/xiongzheng/software/Hadr00/build/Hadr00")
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/Hadr00" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/Hadr00")
-    execute_process(COMMAND /opt/homebrew/anaconda3/bin/install_name_tool
-      -delete_rpath "/Users/xiongzheng/software/build/geant4-v11.3.0-install/lib"
+    execute_process(COMMAND /usr/bin/install_name_tool
+      -delete_rpath "/Users/xiongzheng/software/build/geant4-v11.3.1-install/lib"
+      -delete_rpath "/opt/homebrew/anaconda3/lib"
       "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/Hadr00")
     if(CMAKE_INSTALL_DO_STRIP)
-      execute_process(COMMAND "/Library/Developer/CommandLineTools/usr/bin/strip" -u -r "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/Hadr00")
+      execute_process(COMMAND "/usr/bin/strip" -u -r "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/Hadr00")
     endif()
   endif()
 endif()
