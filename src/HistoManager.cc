@@ -88,6 +88,34 @@ HistoManager::HistoManager()
 
   fBinsE = 60;
   fBinsP = 60;
+
+  // --- CFRP 材料定义 ---
+  G4NistManager* nist = G4NistManager::Instance();
+  G4Material* CFRP = new G4Material("CFRP", 1.55*g/cm3, 2);
+  CFRP->AddMaterial(nist->FindOrBuildMaterial("G4_C"), 0.6);
+  CFRP->AddMaterial(nist->FindOrBuildMaterial("G4_POLYETHYLENE"), 0.4);
+
+  // --- PDMS 材料定义 ---
+  G4Element* C  = nist->FindOrBuildElement("C");
+  G4Element* H  = nist->FindOrBuildElement("H");
+  G4Element* O  = nist->FindOrBuildElement("O");
+  G4Element* Si = nist->FindOrBuildElement("Si");
+
+  G4Element* Zn = nist->FindOrBuildElement("Zn");
+  G4Element* Al = nist->FindOrBuildElement("Al");
+  G4Element* Na = nist->FindOrBuildElement("Na");
+
+  // 定义 Sylgard 170 材料
+  G4Material* Sylgard170 = new G4Material("Sylgard170", 1.34*g/cm3, 7);
+
+  // 按原子比例添加元素
+  Sylgard170->AddElement(Si, 0.3796);
+  Sylgard170->AddElement(O,  0.3902);
+  Sylgard170->AddElement(C,  0.1795);
+  Sylgard170->AddElement(H,  0.0455);
+  Sylgard170->AddElement(Zn, 0.0041);
+  Sylgard170->AddElement(Al, 0.0006);
+  Sylgard170->AddElement(Na, 0.0005);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
